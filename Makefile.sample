@@ -1,0 +1,5 @@
+default:
+	DB_ADDR_URI='tcp://127.0.0.1:3301' \
+	DB_USER_NAME=guest \
+	DB_USER_PASSWORD='' \
+	php -S  0.0.0.0:8080 -t public/
