@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace db;
 
 use Tarantool\Client\Client;
+use Tarantool\Client\Schema\Criteria;
 
 class Manager
 {
@@ -132,5 +133,44 @@ class Manager
         }
         $result = $this->dbClient->executeUpdate($this::SQL_DEL_PST, $postID, $creatorID);
         return $result->count() > 0;
+    }
+
+    public function getUserFeed(int $userID, int $lastPostID) : array
+    {
+        if (empty($userID)) {
+            return [];
+        }
+
+        // Получить идентификаторы постов интересных авторов из ленты пользователя.
+        $space = $this->dbClient->getSpace('user_feeds');
+        $result = $space->select(Criteria::key([$userID]));
+        $postsIDs = $result[0][1];
+        if (sizeOf($postsIDs) === 0) {
+            return [];
+        }
+
+        // Создать SQL запрос на получение постов.
+        $queryPart = substr(json_encode($postsIDs), 1, -1);
+        if ($lastPostID === 0) {
+            // Если необходимо получить только первый чанк.
+            $query = 'SELECT * FROM posts WHERE "id" IN ('
+                . $queryPart
+                . ') AND "removed"=0 ORDER BY "id" DESC LIMIT 50';
+        } else {
+            // Если необходимо получить не первый чанк.
+            $query = 'SELECT * FROM posts WHERE "id" IN ('
+                . $queryPart
+                . ') AND "removed"=0 AND "id" < '
+                . $lastPostID
+                . ' ORDER BY "id" DESC LIMIT 50';
+        }
+
+        // Получить посты по их идентификаторам.
+        $result = $this->dbClient->executeQuery($query);
+        $posts = [];
+        foreach ($result->getData() as &$row) {
+            array_push($posts, new Post($row));
+        }
+        return $posts;
     }
 }

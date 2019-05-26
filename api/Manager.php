@@ -43,7 +43,7 @@ class Manager
     {
         $this->dbm = $dbm;
         $this->routeHandlers = [
-            '/api/get_my_feed' => [$this, 'handlerWIP'],
+            '/api/get_my_feed' => [$this, 'handlerGetMyFeed'],
             '/api/create_post' => [$this, 'handlerCreatePost'],
             '/api/get_user_posts' => [$this, 'handlerGetUserPosts'],
             '/api/get_post' => [$this, 'handlerGetPost'],
@@ -101,6 +101,7 @@ class Manager
         try {
             $resp = $handler($data, $user);
         } catch (\Exception $e) {
+            print $e;
             // TODO добавить отправку ошибки в багтрекер.
             $this-> send(new Response(ERR_INTERNAL_ERROR, null));
             return;
@@ -206,8 +207,9 @@ class Manager
         return new Response(NO_ERR, null);
     }
 
-    private function handlerWIP(array $data, User $user) : Response
+    private function handlerGetMyFeed(array $data, User $user) : Response
     {
-        return new Response(ERR_WIP, null);
+        $posts = $this->dbm->getUserFeed($user->id, (int)$data['last_post_id']);
+        return new Response(NO_ERR, ['posts' => $posts]);
     }
 }
