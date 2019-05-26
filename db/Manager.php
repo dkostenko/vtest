@@ -8,14 +8,15 @@ use Tarantool\Client\Client;
 
 class Manager
 {
-    private const SQL_CRT_PST = 'INSERT INTO posts VALUES (null, ?, ?, ?)';
-    private const SQL_USR_PSTS = 'SELECT * FROM posts WHERE "creator_id" = ? ORDER BY "id" DESC LIMIT 50';
-    private const SQL_USR_PSTS_PAGE = 'SELECT * FROM posts WHERE "creator_id" = ? AND "id" < ? ORDER BY "id" DESC LIMIT 50';
-    private const SQL_PST = 'SELECT * FROM posts WHERE "id" = ? LIMIT 1';
+    private const SQL_CRT_PST = 'INSERT INTO posts VALUES (null, ?, ?, 0, ?)';
+    private const SQL_USR_PSTS = 'SELECT * FROM posts WHERE "creator_id" = ? AND "removed"=0 ORDER BY "id" DESC LIMIT 50';
+    private const SQL_USR_PSTS_PAGE = 'SELECT * FROM posts WHERE "creator_id" = ? AND "id" < ? AND "removed"=0 ORDER BY "id" DESC LIMIT 50';
+    private const SQL_PST = 'SELECT * FROM posts WHERE "id" = ? AND "removed"=0 LIMIT 1';
     private const SQL_USR = 'SELECT * FROM users WHERE "id" = ? LIMIT 1';
-    private const SQL_UPD_PST = 'UPDATE posts SET "text"=? WHERE "id"=? AND "creator_id"=?';
+    private const SQL_UPD_PST = 'UPDATE posts SET "text"=? WHERE "id"=? AND "creator_id"=? AND "removed"=0';
     private const SQL_SUBSCRIBE = 'INSERT INTO followers VALUES (null, ?, ?)';
     private const SQL_UNSUBSCRIBE = 'DELETE FROM followers WHERE "src_id"=? AND "dst_id"=?';
+    private const SQL_DEL_PST = 'UPDATE posts SET "removed"=1 WHERE "id" = ? AND "creator_id"=? AND "removed"=0';
 
     private $dbClient;
 
@@ -122,5 +123,14 @@ class Manager
         }
         $this->dbClient->executeUpdate($this::SQL_UNSUBSCRIBE, $userID, $targetID);
         return true;
+    }
+
+    public function deletePost(int $creatorID, int $postID) : bool
+    {
+        if (empty($creatorID) || empty($postID)) {
+            return false;
+        }
+        $result = $this->dbClient->executeUpdate($this::SQL_DEL_PST, $postID, $creatorID);
+        return $result->count() > 0;
     }
 }

@@ -50,7 +50,7 @@ class Manager
             '/api/subscribe' => [$this, 'handlerSubscribe'],
             '/api/unsubscribe' => [$this, 'handlerUnsubscribe'],
             '/api/update_post' => [$this, 'handlerUpdatePost'],
-            '/api/delete_post' => [$this, 'handlerWIP'],
+            '/api/delete_post' => [$this, 'handlerDeletePost'],
         ];
     }
 
@@ -191,6 +191,15 @@ class Manager
     private function handlerUnsubscribe(array $data, User $user) : Response
     {
         $ok = $this->dbm->unsubscribe($user->id, (int)$data['user_id']);
+        if (!$ok) {
+            return new Response(ERR_WRONG_PARAMS, null);
+        }
+        return new Response(NO_ERR, null);
+    }
+
+    private function handlerDeletePost(array $data, User $user) : Response
+    {
+        $ok = $this->dbm->deletePost($user->id, (int)$data['post_id']);
         if (!$ok) {
             return new Response(ERR_WRONG_PARAMS, null);
         }

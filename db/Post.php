@@ -16,6 +16,6 @@ class Post
         $this->id = $row[0];
         $this->creator_id = $row[1];
         $this->created_at = $row[2];
-        $this->text = $row[3];
+        $this->text = $row[4];
     }
 }
