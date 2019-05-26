@@ -6,6 +6,34 @@ namespace api;
 
 use \db\User;
 
+
+// TODO вынести ошибки в отдельный файл. Была проблема с подключением ошибок из
+// такого же неймспейса, но в другом файле.
+
+// Ошибка: отсутствует ошибка.
+const NO_ERR = -1;
+
+// Ошибка: метод находится в разработке.
+const ERR_WIP = 777;
+
+// Ошибка: внутренняя ошибка приложения.
+const ERR_INTERNAL_ERROR = 500;
+
+// Ошибка: некорректные параметры.
+const ERR_WRONG_PARAMS = 400;
+
+// Ошибка: не пройдена аутентификация.
+const ERR_NOT_AUTHED = 401;
+
+// Ошибка: некорректный HTTP метод.
+const ERR_WRONG_HTTP_METHOD = 400;
+
+// Ошибка: некорректный заголовок Content-Type.
+const ERR_WRONG_CONTENT_TYPE = 400;
+
+// Ошибка: попытка вызвать несуществующий метод приложения.
+const ERR_WRONG_API_METHOR = 400;
+
 class Manager
 {
     private $dbm;
@@ -30,59 +58,59 @@ class Manager
     {
         // Установить обработчик исключений.
         set_exception_handler(function ($e) {
-            # TODO отправить информацию в багтрекер, вместо print.
-            print $e;
-
-            $this->send(['data' => 'unexpected error', 'code' => 500]);
+            return new Response(ERR_INTERNAL_ERROR, null);
         });
 
 
         // Проверить HTTP-метод запроса.
         if ($httpMethod !== 'POST') {
-            $this->send(['data' => 'unknown http method', 'code' => 400]);
+            $this-> send(new Response(ERR_WRONG_HTTP_METHOD, null));
             return;
         }
 
         // Проверить корректность заголовка Content-Type.
         $headers = apache_request_headers();
         if ($headers['Content-Type'] !== 'application/json; charset=utf-8') {
-            $this->send(['data' => 'unknown content type header', 'code' => 400]);
+            $this-> send(new Response(ERR_WRONG_CONTENT_TYPE, null));
             return;
         }
 
         // Получить вызываемый метод.
         $handler = $this->routeHandlers[$path];
-        if (!isset($handler)) {
-            $this->send(['data' => 'unknown method', 'code' => 400]);
+        if (empty($handler)) {
+            $this-> send(new Response(ERR_WRONG_API_METHOR, null));
             return;
         }
 
         // Вычленить передаваемые данные.
         [$data, $ok] = $this->parseBodyJSON();
         if (!$ok) {
-            $this->send(['data' => 'wrong params', 'code' => 400]);
+            $this-> send(new Response(ERR_WRONG_PARAMS, null));
             return;
         }
 
         // Провести аутентификацию.
         $userID = (int)$headers['X-USER-ID'];
         $user = $this->dbm->getUser($userID);
-        if (!isset($user)) {
-            $this->send(['data' => 'not authenticated', 'code' => 400]);
+        if (empty($user)) {
+            $this-> send(new Response(ERR_NOT_AUTHED, null));
             return;
         }
 
         // Исполнить вызываемый метод.
         $resp = $handler($data, $user);
+
+        // Отправить ответ.
         $this->send($resp);
     }
 
     private function parseBodyJSON() : array
     {
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (empty($data)) {
+        $rawData = file_get_contents('php://input');
+        if (empty($rawData)) {
             return [[], true];
         }
+        $data = json_decode($rawData, true);
         switch(json_last_error()) {
         case JSON_ERROR_DEPTH:
             return [[], false];
@@ -94,40 +122,50 @@ class Manager
         return [$data, true];
     }
 
-    // TODO стандартизировать ответы с ошибками, внедрить обертку с ok в ответ.
-    private function send(array $resp) : void
+    private function send(Response $resp) : void
     {
         header('Content-Type: application/json; charset=utf-8');
-        http_response_code($resp['code']);
-        echo json_encode($resp['data']);
+        switch ($resp->errorCode) {
+        case NO_ERR:
+            http_response_code(200);
+            echo json_encode(['ok' => true, 'data' => $resp->data]);
+            return;
+        case ERR_INTERNAL_ERROR:
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error_code' => $resp->errorCode]);
+            return;
+        default:
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error_code' => $resp->errorCode]);
+        }
     }
 
-    private function handlerCreatePost(array $data, User $user) : array
+    private function handlerCreatePost(array $data, User $user) : Response
     {
         $postID = $this->dbm->createPost($user->id, $data['text']);
         if ($postID === 0) {
-            return ['data' => '', 'code' => 400];
+            return new Response(ERR_WRONG_PARAMS, null);
         }
-        return ['data' => $postID, 'code' => 200];
+        return new Response(NO_ERR, ['post_id' => $postID]);
     }
 
-    private function handlerGetUserPosts(array $data, User $user) : array
+    private function handlerGetUserPosts(array $data, User $user) : Response
     {
         $posts = $this->dbm->getUserPosts($user->id, (int)$data['last_post_id']);
-        return ['data' => $posts, 'code' => 200];
+        return new Response(NO_ERR, ['posts' => $posts]);
     }
 
-    private function handlerGetPost(array $data, User $user) : array
+    private function handlerGetPost(array $data, User $user) : Response
     {
         $post = $this->dbm->getPost((int)$data['post_id']);
         if (empty($post)) {
-            return ['data' => null, 'code' => 400];
+            return new Response(ERR_WRONG_PARAMS, null);
         }
-        return ['data' => $post, 'code' => 200];
+        return new Response(NO_ERR, ['post' => $post]);
     }
 
-    private function handlerWIP(array $data, User $user) : array
+    private function handlerWIP(array $data, User $user) : Response
     {
-        return ['data' => 'WIP', 'code' => 200];
+        return new Response(ERR_WIP, null);
     }
 }
