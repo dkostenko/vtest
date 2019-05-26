@@ -14,7 +14,8 @@ class Manager
     private const SQL_PST = 'SELECT * FROM posts WHERE "id" = ? LIMIT 1';
     private const SQL_USR = 'SELECT * FROM users WHERE "id" = ? LIMIT 1';
     private const SQL_UPD_PST = 'UPDATE posts SET "text"=? WHERE "id"=? AND "creator_id"=?';
-    private const SQL_SUBSCRIBE = 'INSERT INTO followers VALUES (null, ?, ?);';
+    private const SQL_SUBSCRIBE = 'INSERT INTO followers VALUES (null, ?, ?)';
+    private const SQL_UNSUBSCRIBE = 'DELETE FROM followers WHERE "src_id"=? AND "dst_id"=?';
 
     private $dbClient;
 
@@ -104,6 +105,22 @@ class Manager
         } catch (\Exception $e) {
             return true;
         }
+        return true;
+    }
+
+    public function unsubscribe(int $userID, int $targetID) : bool
+    {
+        if (empty($userID) || empty($targetID)) {
+            return false;
+        }
+        if ($userID === $targetID) {
+            return false;
+        }
+        $targetUser = $this->getUser($targetID);
+        if (empty($targetUser)) {
+            return false;
+        }
+        $this->dbClient->executeUpdate($this::SQL_UNSUBSCRIBE, $userID, $targetID);
         return true;
     }
 }
