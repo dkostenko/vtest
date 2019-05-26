@@ -8,6 +8,9 @@ use Tarantool\Client\Client;
 
 function main() : void
 {
+    // TODO добавить обращение к service discovery. Пока такого сервиса нет,
+    // необходимо использовать параметры подключение к определенному инстансу БД,
+    // передаваемые при старте.
     $dbClient = Client::fromOptions([
         'uri' => getenv('DB_ADDR_URI'),
         'username' => getenv('DB_USER_NAME'),

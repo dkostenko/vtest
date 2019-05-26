@@ -13,6 +13,7 @@ class Manager
     private const SQL_USR_PSTS_PAGE = 'SELECT * FROM posts WHERE "creator_id" = ? AND "id" < ? ORDER BY "id" DESC LIMIT 50';
     private const SQL_PST = 'SELECT * FROM posts WHERE "id" = ? LIMIT 1';
     private const SQL_USR = 'SELECT * FROM users WHERE "id" = ? LIMIT 1';
+    private const SQL_UPD_PST = 'UPDATE posts SET "text"=? WHERE "id"=? AND "creator_id"=?';
 
     private $dbClient;
 
@@ -72,5 +73,14 @@ class Manager
             array_push($posts, new Post($row));
         }
         return $posts;
+    }
+
+    public function updatePost(int $creatorID, int $postID, ?string $txt) : bool
+    {
+        if (empty($creatorID) || empty($postID) || empty($txt)) {
+            return false;
+        }
+        $result = $this->dbClient->executeUpdate($this::SQL_UPD_PST, $txt, $postID, $creatorID);
+        return $result->count() > 0;
     }
 }
