@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d53bb5851d2b5a384b3a99c40750ae17",
+    "content-hash": "d5e6964ccc6283eec83a79c3579c0848",
     "packages": [
         {
             "name": "rybakit/msgpack",
@@ -108,62 +108,6 @@
                 "tarantool"
             ],
             "time": "2019-05-22T17:51:15+00:00"
-        },
-        {
-            "name": "tarantool/mapper",
-            "version": "4.5.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tarantool-php/mapper.git",
-                "reference": "22c0c5850bc5b749aa0de2dea37824c089c981e4"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tarantool-php/mapper/zipball/22c0c5850bc5b749aa0de2dea37824c089c981e4",
-                "reference": "22c0c5850bc5b749aa0de2dea37824c089c981e4",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.1",
-                "tarantool/client": "^0.5.1"
-            },
-            "require-dev": {
-                "nesbot/carbon": "^1.22",
-                "phpdocumentor/reflection-docblock": "^4.2.0",
-                "phpunit/phpunit": "^6.5.4",
-                "psr/log": "^1.1",
-                "rybakit/msgpack": "^0.5.4"
-            },
-            "suggest": {
-                "ext-msgpack": "For using PeclPacker.",
-                "phpdocumentor/reflection-docblock": "Annotation Plugin",
-                "rybakit/msgpack": "For using PurePacker."
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Tarantool\\Mapper\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dmitry Krokhin",
-                    "email": "nekufa@gmail.com"
-                }
-            ],
-            "description": "PHP Object Mapper for Tarantool.",
-            "keywords": [
-                "client",
-                "mapper",
-                "nosql",
-                "pure",
-                "tarantool"
-            ],
-            "time": "2019-05-23T13:01:45+00:00"
         }
     ],
     "packages-dev": [],

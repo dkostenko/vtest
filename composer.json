@@ -9,8 +9,7 @@
     ],
     "require": {
         "tarantool/client": "^0.5.1",
-        "rybakit/msgpack": "^0.5.4",
-        "tarantool/mapper": "^4.5"
+        "rybakit/msgpack": "^0.5.4"
     },
     "autoload": {
         "psr-4": {
