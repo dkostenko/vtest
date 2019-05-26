@@ -47,7 +47,7 @@ class Manager
             '/api/create_post' => [$this, 'handlerCreatePost'],
             '/api/get_user_posts' => [$this, 'handlerGetUserPosts'],
             '/api/get_post' => [$this, 'handlerGetPost'],
-            '/api/subscribe' => [$this, 'handlerWIP'],
+            '/api/subscribe' => [$this, 'handlerSubscribe'],
             '/api/unsubscribe' => [$this, 'handlerWIP'],
             '/api/update_post' => [$this, 'handlerUpdatePost'],
             '/api/delete_post' => [$this, 'handlerWIP'],
@@ -173,6 +173,15 @@ class Manager
     private function handlerUpdatePost(array $data, User $user) : Response
     {
         $ok = $this->dbm->updatePost($user->id, (int)$data['post_id'], $data['text']);
+        if (!$ok) {
+            return new Response(ERR_WRONG_PARAMS, null);
+        }
+        return new Response(NO_ERR, null);
+    }
+
+    private function handlerSubscribe(array $data, User $user) : Response
+    {
+        $ok = $this->dbm->subscribe($user->id, (int)$data['user_id']);
         if (!$ok) {
             return new Response(ERR_WRONG_PARAMS, null);
         }

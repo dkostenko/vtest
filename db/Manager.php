@@ -14,6 +14,7 @@ class Manager
     private const SQL_PST = 'SELECT * FROM posts WHERE "id" = ? LIMIT 1';
     private const SQL_USR = 'SELECT * FROM users WHERE "id" = ? LIMIT 1';
     private const SQL_UPD_PST = 'UPDATE posts SET "text"=? WHERE "id"=? AND "creator_id"=?';
+    private const SQL_SUBSCRIBE = 'INSERT INTO followers VALUES (null, ?, ?);';
 
     private $dbClient;
 
@@ -82,5 +83,27 @@ class Manager
         }
         $result = $this->dbClient->executeUpdate($this::SQL_UPD_PST, $txt, $postID, $creatorID);
         return $result->count() > 0;
+    }
+
+    public function subscribe(int $userID, int $targetID) : bool
+    {
+        if (empty($userID) || empty($targetID)) {
+            return false;
+        }
+        if ($userID === $targetID) {
+            return false;
+        }
+        $targetUser = $this->getUser($targetID);
+        if (empty($targetUser)) {
+            return false;
+        }
+        try {
+            // Клиент генерирует исключение, когда пытается создаться дубликат подписки.
+            // Failed to execute SQL statement: Duplicate key exists in unique index '...' in space 'FOLLOWERS'.
+            $this->dbClient->executeUpdate($this::SQL_SUBSCRIBE, $userID, $targetID);
+        } catch (\Exception $e) {
+            return true;
+        }
+        return true;
     }
 }
