@@ -56,12 +56,6 @@ class Manager
 
     public function handle(string $path, string $httpMethod) : void
     {
-        // Установить обработчик исключений.
-        set_exception_handler(function ($e) {
-            return new Response(ERR_INTERNAL_ERROR, null);
-        });
-
-
         // Проверить HTTP-метод запроса.
         if ($httpMethod !== 'POST') {
             $this-> send(new Response(ERR_WRONG_HTTP_METHOD, null));
@@ -91,14 +85,26 @@ class Manager
 
         // Провести аутентификацию.
         $userID = (int)$headers['X-USER-ID'];
-        $user = $this->dbm->getUser($userID);
+        try {
+            $user = $this->dbm->getUser($userID);
+        } catch (\Exception $e) {
+            // TODO добавить отправку ошибки в багтрекер.
+            $this-> send(new Response(ERR_INTERNAL_ERROR, null));
+            return;
+        }
         if (empty($user)) {
             $this-> send(new Response(ERR_NOT_AUTHED, null));
             return;
         }
 
         // Исполнить вызываемый метод.
-        $resp = $handler($data, $user);
+        try {
+            $resp = $handler($data, $user);
+        } catch (\Exception $e) {
+            // TODO добавить отправку ошибки в багтрекер.
+            $this-> send(new Response(ERR_INTERNAL_ERROR, null));
+            return;
+        }
 
         // Отправить ответ.
         $this->send($resp);
