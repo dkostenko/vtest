@@ -43,14 +43,14 @@ class Manager
     {
         $this->dbm = $dbm;
         $this->routeHandlers = [
-            '/api/get_my_feed' => array($this, 'handlerWIP'),
-            '/api/create_post' => array($this, 'handlerCreatePost'),
-            '/api/get_user_posts' => array($this, 'handlerGetUserPosts'),
-            '/api/get_post' => array($this, 'handlerGetPost'),
-            '/api/subscribe' => array($this, 'handlerWIP'),
-            '/api/unsubscribe' => array($this, 'handlerWIP'),
-            '/api/update_post' => array($this, 'handlerWIP'),
-            '/api/delete_post' => array($this, 'handlerWIP'),
+            '/api/get_my_feed' => [$this, 'handlerWIP'],
+            '/api/create_post' => [$this, 'handlerCreatePost'],
+            '/api/get_user_posts' => [$this, 'handlerGetUserPosts'],
+            '/api/get_post' => [$this, 'handlerGetPost'],
+            '/api/subscribe' => [$this, 'handlerWIP'],
+            '/api/unsubscribe' => [$this, 'handlerWIP'],
+            '/api/update_post' => [$this, 'handlerWIP'],
+            '/api/delete_post' => [$this, 'handlerWIP'],
         ];
     }
 
