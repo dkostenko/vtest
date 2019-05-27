@@ -171,6 +171,10 @@ class Manager
         foreach ($result->getData() as &$row) {
             array_push($posts, new Post($row));
         }
+
+        // TODO отфлитровать те посты, на авторов которых не подписан данный
+        // пользователь.
+
         return $posts;
     }
 }
