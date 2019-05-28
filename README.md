@@ -12,7 +12,7 @@
 Техническое задание:
 https://docs.google.com/document/d/1cd4_X6Q22oJfWMdhPNuawn3iOZNGuFoihj_ZN7UfjdM/edit#
 
-Анализ использования системы:
+Прогноз использования системы:
 https://docs.google.com/spreadsheets/d/1S_qUf8H5G7_Dt7_ZJMWmyDRl-R2KnAGoCSLXwAuwYa8/edit?usp=sharing
 
 ## Лицензия
