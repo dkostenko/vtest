@@ -6,6 +6,7 @@ namespace db;
 
 use Tarantool\Client\Client;
 use Tarantool\Client\Schema\Criteria;
+use Tarantool\Queue\Queue;
 
 class Manager
 {
@@ -19,11 +20,15 @@ class Manager
     private const SQL_UNSUBSCRIBE = 'DELETE FROM followers WHERE "src_id"=? AND "dst_id"=?';
     private const SQL_DEL_PST = 'UPDATE posts SET "removed"=1 WHERE "id" = ? AND "creator_id"=? AND "removed"=0';
 
+    private const MQ_TOPIC_NEW_POST = 'new_post';
+
     private $dbClient;
+    private $queueNewMsg;
 
     function __construct(Client $dbClient)
     {
         $this->dbClient = $dbClient;
+        $this->queueNewMsg = new Queue($dbClient, $this::MQ_TOPIC_NEW_POST);
     }
 
     public function getUser(int $userID) : ?User
@@ -46,8 +51,12 @@ class Manager
         if (empty($text)) {
             return 0;
         }
+        // TODO поместить размещение идентификатора поста в очередь на доставку поста
+        // в ленты подписчиков в транзакцию БД.
         $result = $this->dbClient->executeUpdate($this::SQL_CRT_PST, $creatorID, time(), $text);
-        return $result->getAutoincrementIds()[0];
+        $postID = $result->getAutoincrementIds()[0];
+        $this->queueNewMsg->put($postID);
+        return $postID;
     }
 
     public function getPost(int $postID) : ?Post
@@ -90,6 +99,9 @@ class Manager
 
     public function subscribe(int $userID, int $targetID) : bool
     {
+        // TODO добавить возможность добавления 10 последних постов пользователя,
+        // на которого произошла подписка, в ленту постов интересных авторов
+        // инициатора подписки.
         if (empty($userID) || empty($targetID)) {
             return false;
         }
@@ -112,6 +124,8 @@ class Manager
 
     public function unsubscribe(int $userID, int $targetID) : bool
     {
+        // TODO добавить возможность удаления постов пользователя, от которого произошла
+        // отписка, из ленты постов интересных авторов инициатора отписки.
         if (empty($userID) || empty($targetID)) {
             return false;
         }
@@ -172,8 +186,10 @@ class Manager
             array_push($posts, new Post($row));
         }
 
-        // TODO отфлитровать те посты, на авторов которых не подписан данный
-        // пользователь.
+        // TODO необходимо проверить имперически, важно ли моментально удалять посты
+        // из ленты постов интересных авторов тех авторов, от которых отписался пользователь.
+        // Если есть необходимость, то необходимо отфлитровать те посты,
+        // на авторов которых не подписан данный пользователь.
 
         return $posts;
     }

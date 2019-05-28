@@ -1,0 +1,24 @@
+{
+    "name": "dkostenko/vtest",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dmitry Kostenko",
+            "email": "kostenko.dev@gmail.com"
+        }
+    ],
+    "require": {
+        "tarantool/client": "^0.5.1",
+        "rybakit/msgpack": "^0.5.4",
+        "tarantool/queue": "^0.8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "api\\" : "api/",
+            "db\\" : "db/"
+        },
+        "config": {
+            "optimize-autoloader": true
+        }
+    }
+}

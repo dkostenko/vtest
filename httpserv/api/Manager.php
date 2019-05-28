@@ -88,6 +88,7 @@ class Manager
         try {
             $user = $this->dbm->getUser($userID);
         } catch (\Exception $e) {
+            print $e;
             // TODO добавить отправку ошибки в багтрекер.
             $this-> send(new Response(ERR_INTERNAL_ERROR, null));
             return;
